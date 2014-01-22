@@ -1,0 +1,5 @@
+-lib hxparse
+-lib hxargs
+-cp src
+-neko bin/ts2hx.n
+-main Main
