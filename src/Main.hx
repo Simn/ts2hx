@@ -71,7 +71,7 @@ class Main {
 			} catch(e:hxparse.Unexpected<Dynamic>) {
 				throw e.pos.format(input) + ": Unexpected " + e.token.def;
 			} catch(e:hxparse.UnexpectedChar) {
-				throw e.pos.format(input) + ": Unexpected `" + String.fromCharCode(e.char) + "` (code " +e.char+ ")";
+				throw e.pos.format(input) + ": Unexpected `" + e.char;
 			}
 			var converter = new tshx.Converter();
 			converter.convert(decls);
