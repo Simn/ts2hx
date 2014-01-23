@@ -41,47 +41,10 @@ class Converter {
 		}
 	}
 	
-	function convertModule(m:TsModule) {
-		var name = pathToString(m.path);
-		if (!modules.exists(name)) {
-			modules[name] = {
-				types: []
-			}
-		}
-		var old = currentModule;
-		currentModule = modules[name];
-		for (decl in m.elements) {
-			convertDecl(decl);
-		}
-	}
-	
-	function convertInterface(i:TsInterface) {
-		var fields = [];
-		for (mem in i.t) {
-			var field = convertMember(mem);
-			if (field != null) {
-				fields.push(field);
-			}
-		}
-		var parents = i.parents.map(convertTypeReference);
-		var kind = parents.length == 0 ? TAnonymous(fields) : TExtend(parents, fields);
-		var td = {
-			pack: [],
-			name: i.name,
-			pos: nullPos,
-			meta: [],
-			params: [],
-			isExtern: false,
-			kind: TDAlias(kind),
-			fields: []
-		}
-		return td;
-	}
-	
-	function convertClass(c:TsClass) {
+	function convertFields(fl:Array<TsTypeMember>) {
 		var fields = [];
 		var fieldMap = new Map();
-		for (mem in c.t) {
+		for (mem in fl) {
 			var field = convertMember(mem);
 			if (field != null) {
 				if (fieldMap.exists(field.name)) {
@@ -101,6 +64,42 @@ class Converter {
 				}
 			}
 		}
+		return fields;
+	}
+	
+	function convertModule(m:TsModule) {
+		var name = pathToString(m.path);
+		if (!modules.exists(name)) {
+			modules[name] = {
+				types: []
+			}
+		}
+		var old = currentModule;
+		currentModule = modules[name];
+		for (decl in m.elements) {
+			convertDecl(decl);
+		}
+	}
+	
+	function convertInterface(i:TsInterface) {
+		var fields = convertFields(i.t);
+		var parents = i.parents.map(convertTypeReference);
+		var kind = parents.length == 0 ? TAnonymous(fields) : TExtend(parents, fields);
+		var td = {
+			pack: [],
+			name: i.name,
+			pos: nullPos,
+			meta: [],
+			params: i.params.map(convertTypeParameter),
+			isExtern: false,
+			kind: TDAlias(kind),
+			fields: []
+		}
+		return td;
+	}
+	
+	function convertClass(c:TsClass) {
+		var fields = convertFields(c.t);
 		var interfaces = c.interfaces.map(convertTypeReference);
 		// TODO: can't implement typedefs, I guess we can rely on structural subtyping
 		interfaces = [];
@@ -109,7 +108,7 @@ class Converter {
 			name: c.name,
 			pos: nullPos,
 			meta: [],
-			params: [],
+			params: c.params.map(convertTypeParameter),
 			isExtern: true,
 			kind: TDClass(c.parentClass == null ? null : convertTypeReference(c.parentClass), interfaces),
 			fields: fields
