@@ -66,7 +66,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				});
 			case [{def:TKeyword(TsExport)}]:
 				switch stream {
-					case [{def: TAssign}, i = identifier(), {def: TSemicolon}]: DExportAssignment(i);
+					case [{def: TAssign}, i = identifier(), _ = topt(TSemicolon)]: DExportAssignment(i);
 					case [d = declaration()]: d;
 				}
 			case [{def: TKeyword(TsDeclare)}]:
