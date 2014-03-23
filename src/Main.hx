@@ -52,7 +52,7 @@ class Main {
 			config.inPaths = ["."];
 		}
 		if (config.inclusionFilters.length == 0) {
-			config.inclusionFilters.push(~/\.ts$/);
+			config.inclusionFilters.push(~/\.d\.ts$/);
 		}
 		if (!sys.FileSystem.exists(config.outDir)) {
 			sys.FileSystem.createDirectory(config.outDir);
