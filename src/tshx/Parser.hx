@@ -8,7 +8,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 	public function new(input:byte.ByteData, sourceName:String) {
 		super(new tshx.Lexer(input, sourceName), tshx.Lexer.tok);
 	}
-	
+
 	public function parse() {
 		var m = {
 			path: ["toplevel"],
@@ -24,9 +24,9 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 		}
 		return m;
 	}
-	
+
 	// Declarations
-	
+
 	function declaration() {
 		var r = switch stream {
 			case [{def: TKeyword(TsVar)}, i = identifier(), t = popt(typeAnnotation)]:
@@ -75,9 +75,9 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 		topt(TSemicolon);
 		return r;
 	}
-	
+
 	// Interface
-	
+
 	function Interface() {
 		return switch stream {
 			case [{def: TKeyword(TsInterface)}, i = identifier(), tl = popt(typeParameters), ext = popt(interfaceExtendsClause), t = objectType(false)]:
@@ -89,16 +89,16 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-		
+
 	function interfaceExtendsClause() {
 		return switch stream {
 			case [{def: TKeyword(TsExtends)}, tl = psep(TComma, typeReference)]:
 				tl;
 		}
 	}
-	
+
 	// Class
-	
+
 	function Class() {
 		return switch stream {
 			case [{def: TKeyword(TsClass)}, i = identifier(), tl = popt(typeParameters), h = classHeritage(), t = objectType(true)]:
@@ -111,7 +111,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function classHeritage() {
 		var ext = popt(classExtendsClause);
 		var impl = popt(implementsClause);
@@ -120,23 +120,23 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 			impl: impl
 		}
 	}
-	
+
 	function classExtendsClause() {
 		return switch stream {
 			case [{def: TKeyword(TsExtends)}, t = typeReference()]:
 				t;
 		}
 	}
-	
+
 	function implementsClause() {
 		return switch stream {
 			case [{def: TKeyword(TsImplements)}, tl = psep(TComma, typeReference)]:
 				tl;
 		}
 	}
-	
+
 	// Enum
-	
+
 	function Enum() {
 		return switch stream {
 			case [{def: TKeyword(TsEnum)}, i = identifier(), {def: TLBrace}, ctors = plist(enumCtor), {def: TRBrace}]:
@@ -146,7 +146,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function enumCtor() {
 		return switch stream {
 			case [n = propertyName(), v = popt(assignmentExpression)]:
@@ -157,7 +157,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function assignmentExpression() {
 		return switch stream {
 			case [{def: TAssign}]:
@@ -166,16 +166,16 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	// Type Parameters
-	
+
 	function typeParameters() {
 		return switch stream {
 			case [{def: TLt}, tl = psep(TComma, typeParameter), {def: TGt}]:
 				tl;
 		}
 	}
-	
+
 	function typeParameter() {
 		return switch stream {
 			case [i = identifier(), constraint = popt(constraint)]:
@@ -185,21 +185,21 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function constraint() {
 		return switch stream {
 			case [{def: TKeyword(TsExtends)}, t = type()]:
 				t;
 		}
 	}
-	
+
 	// Types
-	
+
 	function type() {
 		return typeNext(switch stream {
 			case [{def: TIdent("any")}]: TPredefined(TAny);
 			case [{def: TIdent("number")}]: TPredefined(TNumber);
-			case [{def: TIdent("boolean")}]: TPredefined(TBoolean);
+			case [{def: TIdent("boolean" | "bool")}]: TPredefined(TBoolean);
 			case [{def: TIdent("string")}]: TPredefined(TString);
 			case [{def: TIdent("void")}]: TPredefined(TVoid);
 			case [{def: TKeyword(TsTypeof)}, path = identifierPath()]: TTypeQuery(path);
@@ -210,21 +210,21 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 			case [{def: TString(s)}]: TTypeReference({ path: [s], params: []});
 		});
 	}
-	
+
 	function typeNext(t) {
 		return switch stream {
 			case [{def:TLBrack}, {def:TRBrack}]: typeNext(TTypeLiteral(TArray(t)));
 			case _: t;
 		}
 	}
-	
+
 	function typeArguments() {
 		return switch stream {
 			case [{def: TLt}, tl = psep(TComma, type), {def: TGt}]:
 				tl;
 		}
 	}
-	
+
 	function typeReference() {
 		return switch stream {
 			case [path = identifierPath(), tl = popt(typeArguments)]:
@@ -234,14 +234,14 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function objectType(isClass) {
 		return switch stream {
 			case [{def: TLBrace}, fl = plist(typeMember.bind(isClass)), {def:TRBrace}]:
 				fl;
 		}
 	}
-	
+
 	function typeMember(isClass) {
 		var isPublic = publicOrPrivate();
 		var isStatic = isClass ? Static() : false;
@@ -279,7 +279,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 		topt(TSemicolon);
 		return r;
 	}
-	
+
 	function publicOrPrivate() {
 		return switch stream {
 			case [{def: TKeyword(TsPublic)}]: true;
@@ -287,14 +287,14 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 			case _: true;
 		}
 	}
-	
+
 	function Static() {
 		return switch stream {
 			case [{def: TKeyword(TsStatic)}]: true;
 			case _: false;
 		}
 	}
-	
+
 	function functionType() {
 		var tl = popt(typeParameters);
 		return switch stream {
@@ -306,16 +306,16 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function typeAnnotation() {
 		return switch stream {
 			case [{def: TColon}, t = type()]:
 				t;
 		}
 	}
-	
+
 	// Function
-	
+
 	function callSignature() {
 		var tl = popt(typeParameters);
 		return switch stream {
@@ -327,7 +327,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function argument() {
 		return switch stream {
 			case [i = identifier()]:
@@ -345,16 +345,16 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				a; // TODO
 		}
 	}
-	
+
 	// Identifier
-	
+
 	function identifier() {
 		return switch stream {
 			case [{def: TIdent(s)}]: s;
 			case [{def:TKeyword(kwd)}]: kwd.getName().charAt(2).toLowerCase() + kwd.getName().substr(3);
 		}
 	}
-	
+
 	function identifierPath():TsIdentifierPath {
 		return switch stream {
 			case [i = identifier()]:
@@ -368,7 +368,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				}
 		}
 	}
-	
+
 	function propertyName() {
 		return switch stream {
 			case [i = identifier()]:
@@ -379,16 +379,16 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 				TNumericLiteral(s);
 		}
 	}
-	
+
 	// Helper
-	
+
 	function topt(tdef:TsTokenDef) {
 		return switch stream {
 			case [{def:def} && def == tdef]: true;
 			case _: false;
 		}
 	}
-	
+
 	function plist<T>(f:Void->T):Array<T> {
 		var acc = [];
 		try {
@@ -398,7 +398,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 		} catch(e:hxparse.NoMatch<Dynamic>) {}
 		return acc;
 	}
-	
+
 	function psep<T>(sep:TsTokenDef, f:Void->T):Array<T> {
 		var acc = [];
 		while(true) {
@@ -420,7 +420,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 			case _: null;
 		}
 	}
-	
+
 	override function peek(n) {
 		var r = if (n == 0)
 			switch(super.peek(0)) {
