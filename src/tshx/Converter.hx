@@ -12,18 +12,18 @@ class Converter {
 	static var nullPos = { min:0, max:0, file:"" };
 	static var tDynamic = TPath({ pack: [], name: "Dynamic", sub: null, params: [] });
 	static var tInt = { pack: [], name: "Int", sub: null, params: [] };
-	
+
 	public var modules(default, null):Map<String, HaxeModule>;
 	var currentModule:HaxeModule;
-	
+
 	public function new() {
 		modules = new Map();
 	}
-	
+
 	public function convert(module:TsModule) {
 		convertDecl(DModule(module));
 	}
-	
+
 	function convertDecl(d:TsDeclaration) {
 		switch(d) {
 			case DModule(m):
@@ -40,7 +40,7 @@ class Converter {
 				// TODO: do we need these?
 		}
 	}
-	
+
 	function convertFields(fl:Array<TsTypeMember>) {
 		var fields = [];
 		var fieldMap = new Map();
@@ -66,7 +66,7 @@ class Converter {
 		}
 		return fields;
 	}
-	
+
 	function convertModule(m:TsModule) {
 		var name = pathToString(m.path);
 		if (!modules.exists(name)) {
@@ -80,7 +80,7 @@ class Converter {
 			convertDecl(decl);
 		}
 	}
-	
+
 	function convertInterface(i:TsInterface) {
 		var fields = convertFields(i.t);
 		var parents = i.parents.map(convertTypeReference);
@@ -97,7 +97,7 @@ class Converter {
 		}
 		return td;
 	}
-	
+
 	function convertClass(c:TsClass) {
 		var fields = convertFields(c.t);
 		var interfaces = c.interfaces.map(convertTypeReference);
@@ -115,7 +115,7 @@ class Converter {
 		}
 		return td;
 	}
-	
+
 	function convertEnum(en:TsEnum) {
 		var i = 0;
 		var fields = en.constructors.map(function(ctor) {
@@ -144,7 +144,7 @@ class Converter {
 		}
 		return td;
 	}
-	
+
 	function convertMember(mem:TsTypeMember) {
 		var o = switch(mem) {
 			case TProperty(sig):
@@ -170,7 +170,7 @@ class Converter {
 			pos: nullPos
 		}
 	}
-	
+
 	function convertArgument(arg:TsArgument) {
 		return {
 			name: arg.name,
@@ -179,7 +179,7 @@ class Converter {
 			value: null
 		}
 	}
-	
+
 	function convertTypeParameter(tp:TsTypeParameter) {
 		return {
 			name: tp.name,
@@ -187,7 +187,7 @@ class Converter {
 			params: []
 		}
 	}
-	
+
 	function convertType(t:TsType):ComplexType {
 		return switch(t) {
 			case TPredefined(t):
@@ -221,16 +221,22 @@ class Converter {
 				}
 		}
 	}
-	
+
 	function convertTypeReference(tref:TsTypeReference) {
-		return {
+		var tPath = {
 			name: tref.path[tref.path.length - 1],
 			pack: tref.path.slice(0, -1),
 			params: tref.params.map(function(t) return TPType(convertType(t))),
 			sub: null
 		};
+		switch [tPath.name, tPath.pack] {
+			case ["Object", []]:
+				tPath.name = "Dynamic";
+			case _:
+		}
+		return tPath;
 	}
-	
+
 	function convertPropertyName(pn:TsPropertyName) {
 		return switch(pn) {
 			case TIdentifier(s): s;
@@ -238,7 +244,7 @@ class Converter {
 			case TNumericLiteral(s): "_" + s;
 		}
 	}
-	
+
 	function pathToString(p:TsIdentifierPath) {
 		return p.join(".");
 	}
