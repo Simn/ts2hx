@@ -206,7 +206,8 @@ class Converter {
 			case TTypeLiteral(t):
 				switch(t) {
 					case TObject(o):
-						TAnonymous(o.map(convertMember).filter(function(v) return v != null));
+						var fields:Array<Field> = convertFields(o);
+						TAnonymous(fields.filter(function(v) return v != null));
 					case TArray(t):
 						TPath({ name: "Array", pack: [], params: [TPType(convertType(t))], sub: null});
 					case TFunction(f):
