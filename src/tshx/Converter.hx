@@ -26,7 +26,7 @@ class Converter {
 
 	function convertDecl(d:TsDeclaration) {
 		switch(d) {
-			case DModule(m):
+			case DModule(m) | DExternalModule(m):
 				convertModule(m);
 			case DInterface(i):
 				currentModule.types.push(convertInterface(i));
@@ -36,7 +36,7 @@ class Converter {
 				currentModule.types.push(convertEnum(en));
 			case DFunction(_) | DVariable(_):
 				// TODO: we need some convention for that
-			case DExternalModule(_) | DImport(_) | DExportAssignment(_):
+			case DImport(_) | DExportAssignment(_):
 				// TODO: do we need these?
 		}
 	}
