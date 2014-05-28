@@ -59,7 +59,7 @@ class Main {
 		}
 		run(config);
 	}
-	
+
 	static function run(config:Config) {
 		function convert(content:String, filePath:String) {
 			var input = byte.ByteData.ofString(content);
@@ -81,7 +81,7 @@ class Main {
 			}
 			var printer = new haxe.macro.Printer();
 			for (k in converter.modules.keys()) {
-				var outPath = outDir + "/" + k + ".hx";
+				var outPath = outDir + "/" + k.replace("/", "_") + ".hx";
 				var buf = new StringBuf();
 				for (t in converter.modules[k].types) {
 					var s = printer.printTypeDefinition(t);
@@ -121,7 +121,7 @@ class Main {
 			}
 		}
 	}
-	
+
 	static function isFiltered(config:Config, path:String) {
 		if (config.inclusionFilters.length > 0) {
 			for (ereg in config.inclusionFilters) {
