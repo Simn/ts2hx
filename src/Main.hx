@@ -14,6 +14,10 @@ private class Config {
 }
 
 class Main {
+	/**
+		This is the entry point to Ts2Hx. It parses the command line arguments
+		and then invokes the `run` method with the resulting configuration.
+	**/
 	static function main() {
 		var config = new Config();
 		var printHelp = false;
@@ -60,40 +64,13 @@ class Main {
 		run(config);
 	}
 
+	/**
+		Executes Ts2Hx with the given `config`.
+
+		This method traverses the input and finds all relevant files, which are
+		then read and passed to `convert`.
+	**/
 	static function run(config:Config) {
-		function convert(content:String, filePath:String) {
-			var input = byte.ByteData.ofString(content);
-			var parser = new Parser(input, filePath);
-			var decls = try {
-				parser.parse();
-			} catch(e:hxparse.NoMatch<Dynamic>) {
-				throw e.pos.format(input) + ": NoMatch " +e.token.def;
-			} catch(e:hxparse.Unexpected<Dynamic>) {
-				throw e.pos.format(input) + ": Unexpected " + e.token.def;
-			} catch(e:hxparse.UnexpectedChar) {
-				throw e.pos.format(input) + ": Unexpected `" + e.char;
-			}
-			var converter = new tshx.Converter();
-			converter.convert(decls);
-			var outDir = config.outDir + "/" + filePath;
-			if (!sys.FileSystem.exists(outDir)) {
-				sys.FileSystem.createDirectory(outDir);
-			}
-			var printer = new haxe.macro.Printer();
-			for (k in converter.modules.keys()) {
-				var outPath = outDir + "/" + k.replace("/", "_") + ".hx";
-				var buf = new StringBuf();
-				for (t in converter.modules[k].types) {
-					var s = printer.printTypeDefinition(t);
-					buf.add(s);
-					buf.add("\n");
-				}
-				if (buf.length > 0) {
-					sys.io.File.saveContent(outPath, buf.toString());
-					trace('Written $outPath');
-				}
-			}
-		}
 		function loop(base:String, entry:String, level:Int) {
 			var path = base + entry;
 			if (sys.FileSystem.isDirectory(path)) {
@@ -107,7 +84,7 @@ class Main {
 			} else {
 				if(!isFiltered(config, path)) {
 					var content = sys.io.File.getContent(path);
-					convert(content, entry.substr(0, -5));
+					convert(config, content, entry.substr(0, -5));
 				}
 			}
 		}
@@ -122,6 +99,56 @@ class Main {
 		}
 	}
 
+	/**
+		Converts the Typescript code `content` to Haxe code.
+
+		This is a 3-step process:
+
+			1. The input code is parsed into the structures defined in `Ast`.
+			2. The structures are converted to Haxe structures by `Converter`.
+			3. The Haxe structures are printed using `haxe.macro.Printer`.
+	**/
+	static function convert(config:Config, content:String, filePath:String) {
+		// Step 1: Parse the code
+		var input = byte.ByteData.ofString(content);
+		var parser = new Parser(input, filePath);
+		var decls = try {
+			parser.parse();
+		} catch(e:hxparse.NoMatch<Dynamic>) {
+			throw e.pos.format(input) + ": NoMatch " +e.token.def;
+		} catch(e:hxparse.Unexpected<Dynamic>) {
+			throw e.pos.format(input) + ": Unexpected " + e.token.def;
+		} catch(e:hxparse.UnexpectedChar) {
+			throw e.pos.format(input) + ": Unexpected `" + e.char;
+		}
+		// Step 2: Convert the Typescript declarations to Haxe declarations.
+		var converter = new tshx.Converter();
+		converter.convert(decls);
+		// Make sure the output directory exists.
+		var outDir = config.outDir + "/" + filePath;
+		if (!sys.FileSystem.exists(outDir)) {
+			sys.FileSystem.createDirectory(outDir);
+		}
+		// Step 3: Use haxe.macro.Printer to print the Haxe declarations.
+		var printer = new haxe.macro.Printer();
+		for (k in converter.modules.keys()) {
+			var outPath = outDir + "/" + k.replace("/", "_") + ".hx";
+			var buf = new StringBuf();
+			for (t in converter.modules[k].types) {
+				var s = printer.printTypeDefinition(t);
+				buf.add(s);
+				buf.add("\n");
+			}
+			if (buf.length > 0) {
+				sys.io.File.saveContent(outPath, buf.toString());
+				trace('Written $outPath');
+			}
+		}
+	}
+
+	/**
+		Tells if `path` is filtered according to the filter rules in `config`.
+	**/
 	static function isFiltered(config:Config, path:String) {
 		if (config.inclusionFilters.length > 0) {
 			for (ereg in config.inclusionFilters) {
