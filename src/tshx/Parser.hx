@@ -3,10 +3,10 @@ package tshx;
 import tshx.Token;
 import tshx.Ast;
 
-class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBuilder {
+class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> implements hxparse.ParserBuilder {
 
 	public function new(input:byte.ByteData, sourceName:String) {
-		super(new tshx.Lexer(input, sourceName), tshx.Lexer.tok);
+		super(new hxparse.LexerTokenSource(new tshx.Lexer(input, sourceName), tshx.Lexer.tok));
 	}
 
 	public function parse() {
@@ -421,6 +421,7 @@ class Parser extends hxparse.Parser<Lexer, TsToken> implements hxparse.ParserBui
 		}
 	}
 
+	@:access(hxparse.Parser.peek)
 	override function peek(n) {
 		var r = if (n == 0)
 			switch(super.peek(0)) {
