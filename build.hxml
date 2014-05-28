@@ -1,5 +1,5 @@
 -lib hxparse
 -lib hxargs
 -cp src
--neko bin/ts2hx.n
+-neko bin/run.n
 -main Main
