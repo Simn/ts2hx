@@ -4,7 +4,7 @@ import tshx.Ast;
 
 using StringTools;
 
-class Config {
+private class Config {
 	public var outDir = "out";
 	public var inPaths = [];
 	public var recursive = false;
@@ -22,7 +22,7 @@ class Main {
 			"-o" => function(dir:String) {
 				config.outDir = dir;
 			},
-			@doc("Browse directories recursively for .ts files")
+			@doc("Browse input paths recursively")
 			"--recursive" => function() {
 				config.recursive = true;
 			},
