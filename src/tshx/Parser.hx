@@ -11,7 +11,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 
 	public function parse() {
 		var m = {
-			path: ["toplevel"],
+			path: ["Toplevel"],
 			elements: []
 		}
 		while(true) {
