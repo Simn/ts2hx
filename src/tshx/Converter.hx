@@ -231,7 +231,7 @@ class Converter {
 			sub: null
 		};
 		switch [tPath.name, tPath.pack] {
-			case ["Object", []]:
+			case ["Object" | "Function", []]:
 				tPath.name = "Dynamic";
 			case _:
 		}
