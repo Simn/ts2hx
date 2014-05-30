@@ -1,0 +1,3 @@
+-cp test
+--no-output
+--macro Test.run("out")
