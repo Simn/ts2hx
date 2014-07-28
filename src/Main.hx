@@ -163,7 +163,7 @@ class Main {
 			}
 			if (buf.length > 0) {
 				sys.io.File.saveContent(outPath, buf.toString());
-				trace('Written $outPath');
+				Sys.println('Written $outPath');
 			}
 		}
 	}
