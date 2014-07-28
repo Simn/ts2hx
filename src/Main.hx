@@ -8,6 +8,7 @@ private class Config {
 	public var outDir = "out";
 	public var inPaths = [];
 	public var recursive = false;
+	public var ignoreErrors = false;
 	public var inclusionFilters:Array<EReg> = [];
 
 	public function new() { }
@@ -29,6 +30,10 @@ class Main {
 			@doc("Browse input paths recursively")
 			"--recursive" => function() {
 				config.recursive = true;
+			},
+			@doc("Ignore conversion errors")
+			"--ignore-errors" => function() {
+				config.ignoreErrors = true;
 			},
 			@doc("Only convert files which match this regular expression")
 			"--in" => function(ereg:String) {
@@ -71,7 +76,7 @@ class Main {
 		then read and passed to `convert`.
 	**/
 	static function run(config:Config) {
-		function loop(base:String, entry:String, level:Int) {
+		function loop(base:String, entry:String, level:Int, errors) {
 			var path = base + entry;
 			if (sys.FileSystem.isDirectory(path)) {
 				if (!config.recursive && level > 0) {
@@ -79,22 +84,39 @@ class Main {
 				}
 				var dir = sys.FileSystem.readDirectory(path);
 				for (entry2 in dir) {
-					loop(path + "/", entry2, level + 1);
+					loop(path + "/", entry2, level + 1, errors);
 				}
 			} else {
 				if(!isFiltered(config, path)) {
 					var content = sys.io.File.getContent(path);
-					convert(config, content, entry.substr(0, -5));
+					var convert = convert.bind(config, content, entry.substr(0, -5));
+					if (config.ignoreErrors) {
+						try {
+							convert();
+						} catch (e:Dynamic) {
+							errors.push({ path : path, error : e });
+							Sys.println("Error converting file " + path + ": " + Std.string(e));
+						}
+					} else {
+						convert();
+					}
 				}
 			}
 		}
+		var errors = [];
 		for (path in config.inPaths) {
 			if (!sys.FileSystem.exists(path)) {
 				Sys.println("Could not open " +path);
 			} else if (sys.FileSystem.isDirectory(path)) {
-				loop(path, "", 0);
+				loop(path, "", 0, errors);
 			} else {
-				loop("./", path, 0);
+				loop("./", path, 0, errors);
+			}
+		}
+		if (config.ignoreErrors && errors.length > 0) {
+			Sys.println("\nError Report:\n");
+			for (e in errors) {
+				Sys.println('File "${e.path}": ${Std.string(e.error)}');
 			}
 		}
 	}
