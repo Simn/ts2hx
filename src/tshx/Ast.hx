@@ -87,6 +87,7 @@ enum TsType {
 	TTypeReference(t:TsTypeReference);
 	TTypeQuery(path:TsIdentifierPath);
 	TTypeLiteral(t:TsTypeLiteral);
+	TRestArgument(t:TsType);
 }
 
 // Declarations

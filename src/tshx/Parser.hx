@@ -342,7 +342,12 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 					type: t,
 				}
 			case [{def: TEllipsis}, a = argument()]:
-				a; // TODO
+				var t = switch (a.type) {
+					case TTypeLiteral(TArray(t)): t;
+					case _: throw "rest parameters should be arrays";
+				}
+				a.type = TRestArgument(t);
+				a;
 		}
 	}
 

@@ -203,6 +203,8 @@ class Converter {
 			case TTypeQuery(path):
 				// TODO
 				tDynamic;
+			case TRestArgument(t):
+				TPath({ name: "Rest", pack: ["haxe"], params: [TPType(convertType(t))] });
 			case TTypeLiteral(t):
 				switch(t) {
 					case TObject(o):
