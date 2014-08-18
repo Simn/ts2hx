@@ -134,15 +134,9 @@ class Main {
 		// Step 1: Parse the code
 		var input = byte.ByteData.ofString(content);
 		var parser = new Parser(input, filePath);
-		var decls = try {
-			parser.parse();
-		} catch(e:hxparse.NoMatch<Dynamic>) {
-			throw e.pos.format(input) + ": NoMatch " +e.token.def;
-		} catch(e:hxparse.Unexpected<Dynamic>) {
-			throw e.pos.format(input) + ": Unexpected " + e.token.def;
-		} catch(e:hxparse.UnexpectedChar) {
-			throw e.pos.format(input) + ": Unexpected `" + e.char;
-		}
+		var decls = hxparse.Utils.catchErrors(input, function() {
+			return parser.parse();
+		});
 		// Step 2: Convert the Typescript declarations to Haxe declarations.
 		var converter = new tshx.Converter();
 		converter.convert(decls);
