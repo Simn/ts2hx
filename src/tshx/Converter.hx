@@ -4,7 +4,8 @@ import tshx.Ast;
 import haxe.macro.Expr;
 
 typedef HaxeModule = {
-	types: Array<TypeDefinition>
+	types: Array<TypeDefinition>,
+	toplevel: Array<Field>
 }
 
 class Converter {
@@ -34,8 +35,20 @@ class Converter {
 				currentModule.types.push(convertClass(c));
 			case DEnum(en):
 				currentModule.types.push(convertEnum(en));
-			case DFunction(_) | DVariable(_):
-				// TODO: we need some convention for that
+			case DFunction(sig):
+				currentModule.toplevel.push({
+					name: sig.name,
+					access: [APublic, AStatic],
+					pos: nullPos,
+					kind: FFun(convertFunction(sig.callSignature)),
+				});
+			case DVariable(v):
+				currentModule.toplevel.push({
+					name: v.name,
+					access: [APublic, AStatic],
+					pos: nullPos,
+					kind: FVar(convertType(v.type))
+				});
 			case DImport(_) | DExportAssignment(_):
 				// TODO: do we need these?
 		}
@@ -71,13 +84,24 @@ class Converter {
 		var name = pathToString(m.path);
 		if (!modules.exists(name)) {
 			modules[name] = {
-				types: []
+				types: [],
+				toplevel: []
 			}
 		}
 		var old = currentModule;
 		currentModule = modules[name];
 		for (decl in m.elements) {
 			convertDecl(decl);
+		}
+		if (modules[name].toplevel.length > 0) {
+			modules[name].types.push({
+				pack: [],
+				name: name + "TopLevel",
+				pos: nullPos,
+				isExtern: true,
+				kind: TDClass(),
+				fields: modules[name].toplevel
+			});
 		}
 	}
 
@@ -151,12 +175,7 @@ class Converter {
 				var kind = FVar(sig.type == null ? tDynamic : convertType(sig.type));
 				{ kind: kind, name: sig.name, opt: sig.optional };
 			case TMethod(sig):
-				var kind = FFun({
-					args: sig.callSignature.arguments.map(convertArgument),
-					ret: sig.callSignature.type == null ? tDynamic : convertType(sig.callSignature.type),
-					expr: null,
-					params: sig.callSignature.params.map(convertTypeParameter)
-				});
+				var kind = FFun(convertFunction(sig.callSignature));
 				{ kind: kind, name: sig.name, opt: sig.optional };
 			case TCall(_) | TConstruct(_) | TIndex(_):
 				return null;
@@ -170,6 +189,14 @@ class Converter {
 			pos: nullPos
 		}
 	}
+
+	function convertFunction(sig:TsCallSignature):Function
+		return {
+			args: sig.arguments.map(convertArgument),
+			ret: sig.type == null ? tDynamic : convertType(sig.type),
+			expr: null,
+			params: sig.params.map(convertTypeParameter)
+		};
 
 	function convertArgument(arg:TsArgument) {
 		return {
