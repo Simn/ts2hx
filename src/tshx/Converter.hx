@@ -96,7 +96,7 @@ class Converter {
 		if (modules[name].toplevel.length > 0) {
 			modules[name].types.push({
 				pack: [],
-				name: name + "TopLevel",
+				name: capitalize(name) + "TopLevel",
 				pos: nullPos,
 				isExtern: true,
 				kind: TDClass(),
@@ -111,7 +111,7 @@ class Converter {
 		var kind = parents.length == 0 ? TAnonymous(fields) : TExtend(parents, fields);
 		var td = {
 			pack: [],
-			name: i.name,
+			name: capitalize(i.name),
 			pos: nullPos,
 			meta: [],
 			params: i.params.map(convertTypeParameter),
@@ -129,7 +129,7 @@ class Converter {
 		interfaces = [];
 		var td = {
 			pack: [],
-			name: c.name,
+			name: capitalize(c.name),
 			pos: nullPos,
 			meta: [],
 			params: c.params.map(convertTypeParameter),
@@ -158,7 +158,7 @@ class Converter {
 		});
 		var td = {
 			pack: [],
-			name: en.name,
+			name: capitalize(en.name),
 			pos: nullPos,
 			meta: [{name: ":enum", params: [], pos: nullPos}],
 			params: [],
@@ -254,7 +254,7 @@ class Converter {
 
 	function convertTypeReference(tref:TsTypeReference) {
 		var tPath = {
-			name: tref.path[tref.path.length - 1],
+			name: capitalize(tref.path[tref.path.length - 1]),
 			pack: tref.path.slice(0, -1),
 			params: tref.params.map(function(t) return TPType(convertType(t))),
 			sub: null
@@ -277,5 +277,9 @@ class Converter {
 
 	function pathToString(p:TsIdentifierPath) {
 		return p.join(".");
+	}
+
+	static public function capitalize(s:String) {
+		return s.charAt(0).toUpperCase() + s.substr(1);
 	}
 }

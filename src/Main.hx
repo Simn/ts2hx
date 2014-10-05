@@ -148,7 +148,7 @@ class Main {
 		// Step 3: Use haxe.macro.Printer to print the Haxe declarations.
 		var printer = new haxe.macro.Printer();
 		for (k in converter.modules.keys()) {
-			var outPath = outDir + "/" + k.replace("/", "_") + ".hx";
+			var outPath = outDir + "/" + tshx.Converter.capitalize(k.replace("/", "_")) + ".hx";
 			var buf = new StringBuf();
 			for (t in converter.modules[k].types) {
 				var s = printer.printTypeDefinition(t);
