@@ -49,7 +49,7 @@ class Converter {
 					pos: nullPos,
 					kind: FVar(convertType(v.type))
 				});
-			case DImport(_) | DExportAssignment(_):
+			case DImport(_) | DExternalImport(_) | DExportAssignment(_):
 				// TODO: do we need these?
 		}
 	}

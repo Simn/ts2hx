@@ -59,11 +59,19 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 							elements: fl
 						});
 				}
-			case [{def: TKeyword(TsImport)}, i = identifier(), {def: TAssign}, {def: TKeyword(TsRequire)}, {def: TLPar}, {def: TString(s)}, {def: TRPar}, {def: TSemicolon}]:
-				DImport({
-					name: i,
-					entityName: [s]
-				});
+			case [{def: TKeyword(TsImport)}, i = identifier(), {def: TAssign}]:
+				switch stream {
+					case [{def: TKeyword(TsRequire)}, {def: TLPar}, {def: TString(s)}, {def: TRPar}, {def: TSemicolon}]:
+						DExternalImport({
+							name: i,
+							moduleReference: s
+						});
+					case [path = identifierPath()]:
+						DImport({
+							name: i,
+							entityName: path
+						});
+				}
 			case [{def:TKeyword(TsExport)}]:
 				switch stream {
 					case [{def: TAssign}, i = identifier(), _ = topt(TSemicolon)]: DExportAssignment(i);

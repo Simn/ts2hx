@@ -138,6 +138,11 @@ typedef TsImportDeclaration = {
 	entityName: TsIdentifierPath
 }
 
+typedef TsExternalImportDeclaration = {
+	name: String,
+	moduleReference: String
+}
+
 enum TsDeclaration {
 	DVariable(v:TsVariable);
 	DFunction(f:TsFunction);
@@ -147,5 +152,6 @@ enum TsDeclaration {
 	DModule(m:TsModule);
 	DExternalModule(m:TsModule);
 	DImport(i:TsImportDeclaration);
+	DExternalImport(i:TsExternalImportDeclaration);
 	DExportAssignment(s:String);
 }
