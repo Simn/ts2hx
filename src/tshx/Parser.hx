@@ -214,6 +214,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 	function typeNext(t) {
 		return switch stream {
 			case [{def:TLBrack}, {def:TRBrack}]: typeNext(TTypeLiteral(TArray(t)));
+			case [{def:TPipe}, t2 = type()]: typeNext(TTypeChoice(t, t2));
 			case _: t;
 		}
 	}

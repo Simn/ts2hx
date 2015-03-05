@@ -5,11 +5,11 @@ import tshx.Token;
 class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 	static var buf:StringBuf;
 	static public var keywords = @:mapping(2) TsKeyword;
-	
+
 	static inline function mk(def:TsTokenDef, lexer:hxparse.Lexer) return new TsToken(def, lexer.curPos());
-	
+
 	static var ident = "_*[a-zA-Z_\\$][a-zA-Z_0-9\\$]*|_+|_+[0-9][_a-zA-Z0-9]*";
-	
+
 	public static var tok = @:rule [
 		"\\239\\187\\191" => lexer.token(tok),
 		"\\(" => mk(TLPar, lexer),
@@ -26,6 +26,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 		"=" => mk(TAssign, lexer),
 		"=>" => mk(TArrow, lexer),
 		"?" => mk(TQuestion, lexer),
+		"|" => mk(TPipe, lexer),
 		"\\." => mk(TDot, lexer),
 		"\\.\\.\\." => mk(TEllipsis, lexer),
 		"-?(([1-9][0-9]*)|0)(.[0-9]+)?([eE][\\+\\-]?[0-9]?)?" => mk(TNumber(lexer.current), lexer),
@@ -56,7 +57,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 		},
 		"" => mk(TEof, lexer)
 	];
-	
+
 	static var string = @:rule [
 		"\\\\t" => {
 			buf.addChar("\t".code);
@@ -86,7 +87,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 			lexer.token(string);
 		},
 	];
-	
+
 	public static var string2 = @:rule [
 		"\\\\\\\\" => {
 			buf.add("\\");
@@ -118,7 +119,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 			lexer.token(string2);
 		}
 	];
-	
+
 	public static var comment = @:rule [
 		"*/" => lexer.curPos().pmax,
 		"*" => {

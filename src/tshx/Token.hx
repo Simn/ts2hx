@@ -39,6 +39,7 @@ enum TsTokenDef {
 	TQuestion;
 	TEllipsis;
 	TDot;
+	TPipe;
 	TKeyword(kwd:TsKeyword);
 	TIdent(s:String);
 	TString(s:String);
@@ -50,7 +51,7 @@ enum TsTokenDef {
 class TsToken {
 	public var def: TsTokenDef;
 	public var pos: hxparse.Position;
-	
+
 	public function new(tok, pos) {
 		this.def = tok;
 		this.pos = pos;
