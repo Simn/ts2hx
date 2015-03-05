@@ -82,7 +82,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 		'"' => {
 			lexer.curPos().pmax;
 		},
-		'[^"]' => {
+		'[^"]+' => {
 			buf.add(lexer.current);
 			lexer.token(string);
 		},
@@ -126,7 +126,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 			buf.add("*");
 			lexer.token(comment);
 		},
-		"[^\\*]" => {
+		"[^\\*]+" => {
 			buf.add(lexer.current);
 			lexer.token(comment);
 		}
