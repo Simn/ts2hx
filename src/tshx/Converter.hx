@@ -251,6 +251,8 @@ class Converter {
 				}
 			case TTypeChoice(t1, t2):
 				TPath({ name: "EitherType", pack: ["haxe"], params:[TPType(convertType(t1)), TPType(convertType(t2))], sub: null});
+			case TTuple(tl):
+				null; // TODO
 		}
 	}
 

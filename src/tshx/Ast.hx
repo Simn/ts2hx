@@ -89,6 +89,7 @@ enum TsType {
 	TTypeLiteral(t:TsTypeLiteral);
 	TRestArgument(t:TsType);
 	TTypeChoice(t1:TsType, t2:TsType);
+	TTuple(tl:Array<TsType>);
 }
 
 // Declarations

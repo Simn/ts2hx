@@ -216,6 +216,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [o = objectType(false)]: TTypeLiteral(TObject(o));
 			case [f = functionType()]: TTypeLiteral(TFunction(f));
 			case [{def: TString(s)}]: TTypeReference({ path: [s], params: []});
+			case [{def: TLBrack}, types = psep(TComma, type), {def: TRBrack}]: TTuple(types);
 		});
 	}
 
