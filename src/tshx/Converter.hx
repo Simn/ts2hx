@@ -252,7 +252,9 @@ class Converter {
 			case TTypeChoice(t1, t2):
 				TPath({ name: "EitherType", pack: ["haxe"], params:[TPType(convertType(t1)), TPType(convertType(t2))], sub: null});
 			case TTuple(tl):
-				null; // TODO
+				// TODO check if all types in a tuple are the same
+				// TODO make an abstract for typed tuples?
+				TPath({ name: "Array", pack: [], params: [TPType(TPath({ name: "Dynamic", pack: [], params: [], sub: null }))], sub: null});
 		}
 	}
 
