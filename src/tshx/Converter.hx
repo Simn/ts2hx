@@ -47,7 +47,7 @@ class Converter {
 					name: v.name,
 					access: [APublic, AStatic],
 					pos: nullPos,
-					kind: FVar(convertType(v.type))
+					kind: FVar(v.type == null ? tDynamic : convertType(v.type))
 				});
 			case DImport(_) | DExternalImport(_) | DExportAssignment(_):
 				// TODO: do we need these?
