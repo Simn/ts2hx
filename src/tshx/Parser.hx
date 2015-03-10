@@ -413,6 +413,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [{def: TEllipsis}, a = argument()]:
 				var t = switch (a.type) {
 					case TTypeLiteral(TArray(t)): t;
+					case TTypeReference({path: ["Array"], params: [t]}): t;
 					case t: throw new TsParserError("rest parameters should be arrays, found " + t, stream.curPos());
 				}
 				a.type = TRestArgument(t);
