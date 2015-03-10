@@ -1,7 +1,7 @@
 ts2hx
 =====
 
-[![Build Status](https://travis-ci.org/nadako/ts2hx.svg?branch=master)](https://travis-ci.org/nadako/ts2hx)
+[![Build Status](https://travis-ci.org/Simn/ts2hx.svg?branch=master)](https://travis-ci.org/Simn/ts2hx)
 
 Typescript external definitions to haxe converter. I use it like this:
 
