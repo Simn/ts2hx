@@ -3,6 +3,19 @@ package tshx;
 import tshx.Token;
 import tshx.Ast;
 
+class TsParserError extends hxparse.ParserError {
+	public var message:String;
+
+	public function new(message:String, pos) {
+		super(pos);
+		this.message = message;
+	}
+
+	override function toString() {
+		return message;
+	}
+}
+
 class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> implements hxparse.ParserBuilder {
 
 	public function new(input:byte.ByteData, sourceName:String) {
@@ -400,7 +413,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [{def: TEllipsis}, a = argument()]:
 				var t = switch (a.type) {
 					case TTypeLiteral(TArray(t)): t;
-					case _: throw "rest parameters should be arrays";
+					case t: throw new TsParserError("rest parameters should be arrays, found " + t, stream.curPos());
 				}
 				a.type = TRestArgument(t);
 				a;
