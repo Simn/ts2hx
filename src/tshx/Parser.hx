@@ -298,25 +298,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		var isStatic = isClass ? Static() : false;
 		var r = switch stream {
 			case [n = propertyName()]:
-				var opt = switch stream {
-					case [{def: TQuestion}]: true;
-					case _: false;
-				}
-				switch stream {
-					case [call = callSignature()]:
-						TMethod({
-							name: n,
-							optional: opt,
-							callSignature: call
-						});
-					case _:
-						var t = popt(typeAnnotation);
-						TProperty({
-							name: n,
-							optional: opt,
-							type: t
-						});
-				}
+				typeMemberProperty(isPublic, isStatic, n);
 			case [call = callSignature()]:
 				TCall(call);
 			case [{def: TKeyword(TsNew)}, call = callSignature()]:
@@ -326,9 +308,45 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 					name: i,
 					type: t
 				});
+			case _:
+				if (peek(0).def == TColon) {
+					// this is really, really weird, but apparently you can have
+					// members named static, private or public.
+					if (isStatic) {
+						typeMemberProperty(isPublic, false, TIdentifier("static"));
+					} else if (isPublic) {
+						typeMemberProperty(false, isStatic, TIdentifier("public"));
+					} else {
+						typeMemberProperty(false, isStatic, TIdentifier("private"));
+					}
+				} else {
+					throw noMatch();
+				}
 		}
 		topt(TSemicolon);
 		return r;
+	}
+
+	function typeMemberProperty(isPublic:Bool, isStatic:Bool, n:TsPropertyName) {
+		var opt = switch stream {
+			case [{def: TQuestion}]: true;
+			case _: false;
+		}
+		return switch stream {
+			case [call = callSignature()]:
+				TMethod({
+					name: n,
+					optional: opt,
+					callSignature: call
+				});
+			case _:
+				var t = popt(typeAnnotation);
+				TProperty({
+					name: n,
+					optional: opt,
+					type: t
+				});
+		}
 	}
 
 	function publicOrPrivate() {
