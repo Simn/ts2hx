@@ -234,7 +234,7 @@ class Converter {
 				// TODO
 				tDynamic;
 			case TRestArgument(t):
-				TPath({ name: "Rest", pack: ["haxe"], params: [TPType(convertType(t))] });
+				TPath({ name: "Rest", pack: ["haxe", "extern"], params: [TPType(convertType(t))] });
 			case TTypeLiteral(t):
 				switch(t) {
 					case TObject(o):
@@ -253,7 +253,7 @@ class Converter {
 						tDynamic;
 				}
 			case TTypeChoice(t1, t2):
-				TPath({ name: "EitherType", pack: ["haxe"], params:[TPType(convertType(t1)), TPType(convertType(t2))], sub: null});
+				TPath({ name: "EitherType", pack: ["haxe", "extern"], params:[TPType(convertType(t1)), TPType(convertType(t2))], sub: null});
 			case TTuple(tl):
 				// TODO check if all types in a tuple are the same
 				// TODO make an abstract for typed tuples?
@@ -269,8 +269,14 @@ class Converter {
 			sub: null
 		};
 		switch [tPath.name, tPath.pack] {
-			case ["Object" | "Function", []]:
+			case ["Object", []]:
 				tPath.name = "Dynamic";
+			case ["RegExp", []]:
+				tPath.pack = ["js"];
+			case ["Function", []]:
+				tPath.pack = ["haxe"];
+				tPath.name = "Constraints";
+				tPath.sub = "Function";
 			case _:
 		}
 		return tPath;
