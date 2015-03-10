@@ -2,6 +2,7 @@ package tshx;
 
 import tshx.Ast;
 import haxe.macro.Expr;
+using StringTools;
 
 typedef HaxeModule = {
 	types: Array<TypeDefinition>,
@@ -98,7 +99,7 @@ class Converter {
 		if (modules[name].toplevel.length > 0) {
 			modules[name].types.push({
 				pack: [],
-				name: capitalize(name) + "TopLevel",
+				name: capitalize(name.replace("/", "_")) + "TopLevel",
 				pos: nullPos,
 				isExtern: true,
 				kind: TDClass(),
