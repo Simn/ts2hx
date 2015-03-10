@@ -214,9 +214,15 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [{def: TKeyword(TsNew)}, f = functionType()]: TTypeLiteral(TConstructor(f));
 			case [r = typeReference()]: TTypeReference(r);
 			case [o = objectType(false)]: TTypeLiteral(TObject(o));
-			case [f = functionType()]: TTypeLiteral(TFunction(f));
+			case [{def: TLPar}]: parenthesisType();
 			case [{def: TString(s)}]: TTypeReference({ path: [s], params: []});
 			case [{def: TLBrack}, types = psep(TComma, type), {def: TRBrack}]: TTuple(types);
+			case _:
+				if (peek(0).def == TLt) {
+					TTypeLiteral(TFunction(functionType()));
+				} else {
+					throw noMatch();
+				}
 		});
 	}
 
@@ -314,6 +320,46 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 					arguments: args,
 					ret: t
 				}
+		}
+	}
+
+	function isFunctionType() {
+		return switch (peek(0)) {
+			case {def: TIdent(_) | TKeyword(_)}:
+				switch (peek(1)) {
+					case {def: TQuestion | TColon | TRPar | TComma}:
+						true;
+					case _:
+						false;
+				}
+			case {def: TEllipsis}:
+				true;
+			case {def: TRPar}:
+				true; // not sure about this one
+			case {def: TLt}:
+				true;
+			case _:
+				false;
+		}
+	}
+
+	function parenthesisType() {
+		if (isFunctionType()) {
+			return switch stream {
+				case [args = psep(TComma, argument), {def: TRPar}, {def: TArrow}, t = type()]:
+					TTypeLiteral(TFunction({
+						params: [],
+						arguments: args,
+						ret: t
+					}));
+				case _:
+					unexpected();
+			}
+		} else {
+			return switch stream {
+				case [t = type(), {def: TRPar}]:
+					typeNext(t);
+			}
 		}
 	}
 
