@@ -47,7 +47,7 @@ class Lexer extends hxparse.Lexer implements hxparse.RuleBuilder {
 			var pmax = try lexer.token(comment) catch (e:haxe.io.Eof) throw "Unclosed comment";
 			mk(TComment(buf.toString()), lexer);
 		},
-		"[\r\n\t ]" => lexer.token(tok),
+		"[\r\n\t  ]+" => lexer.token(tok), // the second space is a nbsp
 		ident => {
 			var kwd = keywords.get(lexer.current);
 			if (kwd != null)
