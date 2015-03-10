@@ -41,6 +41,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 	// Declarations
 
 	function declaration() {
+		var modifier = modifier(); // TODO: do something with these?
 		var r = switch stream {
 			case [{def: TKeyword(TsVar)}, i = identifier(), t = popt(typeAnnotation)]:
 				topt(TSemicolon);
@@ -59,6 +60,8 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				DClass(c);
 			case [en = Enum()]:
 				DEnum(en);
+			case [t = Typedef()]:
+				DTypedef(t);
 			case [{def: TKeyword(TsModule)}]:
 				switch stream {
 					case [path = identifierPath(), {def: TLBrace}, fl = plist(declaration), {def: TRBrace}]:
@@ -95,6 +98,13 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		}
 		topt(TSemicolon);
 		return r;
+	}
+
+	function modifier() {
+		return switch stream {
+			case [{def: TIdent("const")}]: ["const"];
+			case _: [];
+		}
 	}
 
 	// Interface
@@ -184,6 +194,18 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [{def: TAssign}]:
 				switch stream {
 					case [{def: TNumber(s)}]: s;
+				}
+		}
+	}
+
+	// Typedef
+
+	function Typedef() {
+		return switch stream {
+			case [{def: TIdent("type")}, i = identifier(), {def: TAssign}, tl = psep(TPipe, type)]:
+				{
+					name: i,
+					types: tl
 				}
 		}
 	}

@@ -35,6 +35,8 @@ class Converter {
 				currentModule.types.push(convertClass(c));
 			case DEnum(en):
 				currentModule.types.push(convertEnum(en));
+			case DTypedef(t):
+				// TODO
 			case DFunction(sig):
 				currentModule.toplevel.push({
 					name: sig.name,

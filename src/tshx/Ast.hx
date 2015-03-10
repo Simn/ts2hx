@@ -124,6 +124,11 @@ typedef TsEnum = {
 	constructors: Array<TsEnumCtor>
 }
 
+typedef TsTypedef = {
+	name: String,
+	types: Array<TsType>
+}
+
 typedef TsModule = {
 	path: TsIdentifierPath,
 	elements: Array<TsDeclaration>
@@ -149,6 +154,7 @@ enum TsDeclaration {
 	DFunction(f:TsFunction);
 	DClass(c:TsClass);
 	DEnum(en:TsEnum);
+	DTypedef(t:TsTypedef);
 	DInterface(i:TsInterface);
 	DModule(m:TsModule);
 	DExternalModule(m:TsModule);
