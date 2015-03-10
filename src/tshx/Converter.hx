@@ -41,14 +41,14 @@ class Converter {
 			case DFunction(sig):
 				currentModule.toplevel.push({
 					name: sig.name,
-					access: [APublic, AStatic],
+					access: [AStatic],
 					pos: nullPos,
 					kind: FFun(convertFunction(sig.callSignature)),
 				});
 			case DVariable(v):
 				currentModule.toplevel.push({
 					name: v.name,
-					access: [APublic, AStatic],
+					access: [AStatic],
 					pos: nullPos,
 					kind: FVar(v.type == null ? tDynamic : convertType(v.type))
 				});
@@ -155,7 +155,7 @@ class Converter {
 				kind: FVar(null, { expr: EConst(CInt("" +i++)), pos: nullPos }),
 				doc: null,
 				meta: [],
-				access: [APublic],
+				access: [],
 				pos: nullPos
 			}
 		});
@@ -188,7 +188,7 @@ class Converter {
 			kind: o.kind,
 			doc: null,
 			meta: o.opt ? [{name: ":optional", params: [], pos: nullPos}] : [],
-			access: [APublic],
+			access: [],
 			pos: nullPos
 		}
 	}
