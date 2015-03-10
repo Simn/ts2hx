@@ -1,8 +1,10 @@
 ts2hx
 =====
 
+[![Build Status](https://travis-ci.org/nadako/ts2hx.svg?branch=master)](https://travis-ci.org/nadako/ts2hx)
+
 Typescript external definitions to haxe converter. I use it like this:
-	
+
 ```
 neko ts2hx.n "C:\\Github\\DefinitelyTyped" --recursive --in "\.d\.ts$"
 ```
