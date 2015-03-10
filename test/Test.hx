@@ -7,6 +7,7 @@ using StringTools;
 
 class Test {
 	static public function run(path:String) {
+		var exitCode = 0;
 		function browse(dirPath) {
 			var dir = FileSystem.readDirectory(dirPath);
 			for (file in dir) {
@@ -21,6 +22,7 @@ class Test {
 					Sys.setCwd(old);
 					var exit = proc.exitCode();
 					if (exit != 0) {
+						exitCode = 1;
 						var result = proc.stderr.readAll().toString();
 						result = result.replace(file, path);
 						Sys.stderr().writeString(result);
@@ -29,5 +31,6 @@ class Test {
 			}
 		}
 		browse(path);
+		Sys.exit(exitCode);
 	}
 }
