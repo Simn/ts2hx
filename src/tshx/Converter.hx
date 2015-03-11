@@ -176,10 +176,10 @@ class Converter {
 		var o = switch(mem) {
 			case TProperty(sig):
 				var kind = FVar(sig.type == null ? tDynamic : convertType(sig.type));
-				{ kind: kind, name: sig.name, opt: sig.optional };
+				{ kind: kind, name: sig.name, opt: sig.optional, access: if (sig.isStatic) [AStatic] else [] };
 			case TMethod(sig):
 				var kind = FFun(convertFunction(sig.callSignature));
-				{ kind: kind, name: sig.name, opt: sig.optional };
+				{ kind: kind, name: sig.name, opt: sig.optional, access: if (sig.isStatic) [AStatic] else [] };
 			case TCall(_) | TConstruct(_) | TIndex(_):
 				return null;
 		}
@@ -188,7 +188,7 @@ class Converter {
 			kind: o.kind,
 			doc: null,
 			meta: o.opt ? [{name: ":optional", params: [], pos: nullPos}] : [],
-			access: [],
+			access: o.access,
 			pos: nullPos
 		}
 	}

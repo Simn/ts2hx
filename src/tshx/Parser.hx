@@ -337,6 +337,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				TMethod({
 					name: n,
 					optional: opt,
+					isStatic: isStatic,
 					callSignature: call
 				});
 			case _:
@@ -344,6 +345,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				TProperty({
 					name: n,
 					optional: opt,
+					isStatic: isStatic,
 					type: t
 				});
 		}

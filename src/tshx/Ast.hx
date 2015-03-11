@@ -39,7 +39,8 @@ enum TsPropertyName {
 typedef TsPropertySignature = {
 	name: TsPropertyName,
 	optional: Bool,
-	type: Null<TsType>
+	isStatic: Bool,
+	type: Null<TsType>,
 }
 
 typedef TsCallSignature = {
@@ -56,7 +57,8 @@ typedef TsIndexSignature = {
 typedef TsMethodSignature = {
 	name: TsPropertyName,
 	optional: Bool,
-	callSignature: TsCallSignature
+	isStatic: Bool,
+	callSignature: TsCallSignature,
 }
 
 enum TsTypeMember {
