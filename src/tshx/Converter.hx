@@ -178,6 +178,12 @@ class Converter {
 				var kind = FVar(sig.type == null ? tDynamic : convertType(sig.type));
 				{ kind: kind, name: sig.name, opt: sig.optional, access: if (sig.isStatic) [AStatic] else [] };
 			case TMethod(sig):
+				switch (sig.name) {
+					case TIdentifier("constructor"):
+						sig.callSignature.type = TPredefined(TVoid);
+						sig.name = TIdentifier("new");
+					default:
+				}
 				var kind = FFun(convertFunction(sig.callSignature));
 				{ kind: kind, name: sig.name, opt: sig.optional, access: if (sig.isStatic) [AStatic] else [] };
 			case TCall(_) | TConstruct(_) | TIndex(_):
