@@ -18,13 +18,16 @@ class TsParserError extends hxparse.ParserError {
 
 class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> implements hxparse.ParserBuilder {
 
+	var moduleName:String;
+
 	public function new(input:byte.ByteData, sourceName:String) {
+		moduleName = sourceName;
 		super(new hxparse.LexerTokenSource(new tshx.Lexer(input, sourceName), tshx.Lexer.tok));
 	}
 
 	public function parse() {
 		var m = {
-			path: ["Toplevel"],
+			path: [moduleName],
 			elements: []
 		}
 		while(true) {
