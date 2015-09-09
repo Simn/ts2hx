@@ -84,7 +84,7 @@ class Converter {
 	}
 
 	function convertModule(m:TsModule) {
-		var name = pathToString(m.path);
+		var name = capitalize(pathToString(m.path));
 		if (!modules.exists(name)) {
 			modules[name] = {
 				types: [],
@@ -99,7 +99,7 @@ class Converter {
 		if (modules[name].toplevel.length > 0) {
 			modules[name].types.push({
 				pack: [],
-				name: capitalize(name.replace("/", "_")) + "TopLevel",
+				name: name.replace("/", "_") + "TopLevel",
 				pos: nullPos,
 				isExtern: true,
 				kind: TDClass(),
