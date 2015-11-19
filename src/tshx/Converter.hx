@@ -216,7 +216,7 @@ class Converter {
 		}
 	}
 
-	function convertTypeParameter(tp:TsTypeParameter) {
+	function convertTypeParameter(tp:TsTypeParameter):TypeParamDecl {
 		return {
 			name: tp.name,
 			constraints: tp.constraint == null ? [] : [convertType(tp.constraint)],
