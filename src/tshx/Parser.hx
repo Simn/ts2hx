@@ -46,7 +46,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 	function declaration() {
 		var modifier = modifier(); // TODO: do something with these?
 		var r = switch stream {
-			case [{def: TKeyword(TsVar)}, i = identifier(), t = popt(typeAnnotation)]:
+			case [{def: TKeyword(TsVar | TsConst | TsLet)}, i = identifier(), t = popt(typeAnnotation)]:
 				topt(TSemicolon);
 				DVariable({
 					name: i,
@@ -65,7 +65,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				DEnum(en);
 			case [t = Typedef()]:
 				DTypedef(t);
-			case [{def: TKeyword(TsModule)}]:
+			case [{def: TKeyword(TsModule) | TKeyword(TsNamespace)}]:
 				switch stream {
 					case [path = identifierPath(), {def: TLBrace}, fl = plist(declaration), {def: TRBrace}]:
 						DModule({

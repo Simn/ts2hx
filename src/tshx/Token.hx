@@ -13,10 +13,13 @@ enum TsKeyword {
 	TsImplements;
 	TsInterface;
 	TsModule;
+	TsNamespace;
 	TsStatic;
 	TsPublic;
 	TsPrivate;
 	TsVar;
+	TsConst;
+	TsLet;
 	TsTypeof;
 	TsRequire;
 }
