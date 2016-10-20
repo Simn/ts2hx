@@ -207,7 +207,7 @@ class Converter {
 			params: sig.params.map(convertTypeParameter)
 		};
 
-	function convertArgument(arg:TsArgument) {
+	function convertArgument(arg:TsArgument):FunctionArg {
 		return {
 			name: arg.name,
 			opt: arg.optional,
