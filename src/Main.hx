@@ -89,7 +89,8 @@ class Main {
 			} else {
 				if(!isFiltered(config, path)) {
 					var content = sys.io.File.getContent(path);
-					var convert = convert.bind(config, content, entry.substr(0, -5));
+					var relPath = config.inPaths.length == 1 ? path.substr(config.inPaths[0].length) : path;
+					var convert = convert.bind(config, content, entry.substr(0, -5), relPath);
 					if (config.ignoreErrors) {
 						try {
 							convert();
@@ -130,10 +131,10 @@ class Main {
 			2. The structures are converted to Haxe structures by `Converter`.
 			3. The Haxe structures are printed using `haxe.macro.Printer`.
 	**/
-	static function convert(config:Config, content:String, filePath:String) {
+	static function convert(config:Config, content:String, name:String, filePath:String) {
 		// Step 1: Parse the code
 		var input = byte.ByteData.ofString(content);
-		var parser = new Parser(input, filePath);
+		var parser = new Parser(input, name, filePath);
 		var decls = hxparse.Utils.catchErrors(input, function() {
 			return parser.parse();
 		});
@@ -141,7 +142,7 @@ class Main {
 		var converter = new tshx.Converter();
 		converter.convert(decls);
 		// Make sure the output directory exists.
-		var outDir = config.outDir + "/" + filePath;
+		var outDir = config.outDir + "/" + name;
 		if (!sys.FileSystem.exists(outDir)) {
 			sys.FileSystem.createDirectory(outDir);
 		}

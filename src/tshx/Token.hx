@@ -22,6 +22,8 @@ enum TsKeyword {
 	TsLet;
 	TsTypeof;
 	TsRequire;
+	TsDefault;
+	TsType;
 }
 
 enum TsTokenDef {
@@ -43,6 +45,8 @@ enum TsTokenDef {
 	TEllipsis;
 	TDot;
 	TPipe;
+	TStar;
+	TAnd;
 	TKeyword(kwd:TsKeyword);
 	TIdent(s:String);
 	TString(s:String);

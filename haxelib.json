@@ -1,0 +1,10 @@
+{
+  "name": "ts2hx",
+  "url": "https://github.com/ncannasse/ts2hx",
+  "license": "MIT",
+  "classPath": "src",
+  "description": "This library provides typescript definition to haxe convertion (.d.ts files).",
+  "version": "0.1.0",
+  "releasenote": "",
+  "contributors": ["ncannasse","Simn"]
+}

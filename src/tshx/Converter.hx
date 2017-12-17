@@ -14,6 +14,7 @@ class Converter {
 	static var nullPos = { min:0, max:0, file:"" };
 	static var tDynamic = TPath({ pack: [], name: "Dynamic", sub: null, params: [] });
 	static var tInt = { pack: [], name: "Int", sub: null, params: [] };
+	static var tString = { pack: [], name: "String", sub: null, params: [] };
 
 	public var modules(default, null):Map<String, HaxeModule>;
 	var currentModule:HaxeModule;
@@ -52,7 +53,9 @@ class Converter {
 					pos: nullPos,
 					kind: FVar(v.type == null ? tDynamic : convertType(v.type))
 				});
-			case DImport(_) | DExternalImport(_) | DExportAssignment(_):
+			case DExportDecl(d, _):
+				convertDecl(d);
+			case DImport(_) | DExport(_):
 				// TODO: do we need these?
 		}
 	}
@@ -108,7 +111,7 @@ class Converter {
 		}
 	}
 
-	function convertInterface(i:TsInterface) {
+	function convertInterface(i:TsInterface) : TypeDefinition {
 		var fields = convertFields(i.t);
 		var parents = i.parents.map(convertTypeReference);
 		var kind = parents.length == 0 ? TAnonymous(fields) : TExtend(parents, fields);
@@ -125,7 +128,7 @@ class Converter {
 		return td;
 	}
 
-	function convertClass(c:TsClass) {
+	function convertClass(c:TsClass) : TypeDefinition {
 		var fields = convertFields(c.t);
 		var interfaces = c.interfaces.map(convertTypeReference);
 		// TODO: can't implement typedefs, I guess we can rely on structural subtyping
@@ -143,7 +146,7 @@ class Converter {
 		return td;
 	}
 
-	function convertEnum(en:TsEnum) {
+	function convertEnum(en:TsEnum) : TypeDefinition {
 		var i = 0;
 		var fields = en.constructors.map(function(ctor) {
 			if (ctor.value != null) {
@@ -236,7 +239,7 @@ class Converter {
 				});
 			case TTypeReference(t):
 				TPath(convertTypeReference(t));
-			case TTypeQuery(path):
+			case TTypeQuery(_), TIntersection(_):
 				// TODO
 				tDynamic;
 			case TRestArgument(t):
@@ -258,12 +261,19 @@ class Converter {
 						// TODO
 						tDynamic;
 				}
-			case TTypeChoice(t1, t2):
+			case TUnion(t1, t2):
 				TPath({ name: "EitherType", pack: ["haxe", "extern"], params:[TPType(convertType(t1)), TPType(convertType(t2))], sub: null});
 			case TTuple(tl):
 				// TODO check if all types in a tuple are the same
 				// TODO make an abstract for typed tuples?
 				TPath({ name: "Array", pack: [], params: [TPType(TPath({ name: "Dynamic", pack: [], params: [], sub: null }))], sub: null});
+			case TValue(v):
+				switch( v ) {
+				case VNumber(_): TPath(tInt);
+				case VString(_): TPath(tString);
+				}
+			case TKeyof(t):
+				convertType(t);
 		}
 	}
 

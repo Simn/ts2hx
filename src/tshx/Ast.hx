@@ -6,7 +6,8 @@ typedef TsTypeParameters = Array<TsTypeParameter>;
 
 typedef TsTypeParameter = {
 	name: String,
-	constraint: Null<TsType>
+	?constraint: TsType,
+	?assign: TsType,
 }
 
 typedef TsIdentifierPath = Array<String>;
@@ -38,8 +39,8 @@ enum TsPropertyName {
 
 typedef TsPropertySignature = {
 	name: TsPropertyName,
-	optional: Bool,
-	isStatic: Bool,
+	?optional: Bool,
+	?isStatic: Bool,
 	type: Null<TsType>,
 }
 
@@ -51,7 +52,9 @@ typedef TsCallSignature = {
 
 typedef TsIndexSignature = {
 	name: String,
-	type: TsType
+	type: TsType,
+	annot : TsType,
+	opt:Bool,
 }
 
 typedef TsMethodSignature = {
@@ -79,7 +82,7 @@ typedef TsFunctionType = {
 
 enum TsTypeLiteral {
 	TObject(t:TsObjectType);
-	TArray(t:TsType);
+	TArray(t:TsType, ?key:String );
 	TFunction(t:TsFunctionType);
 	TConstructor(t:TsFunctionType);
 }
@@ -90,8 +93,16 @@ enum TsType {
 	TTypeQuery(path:TsIdentifierPath);
 	TTypeLiteral(t:TsTypeLiteral);
 	TRestArgument(t:TsType);
-	TTypeChoice(t1:TsType, t2:TsType);
+	TUnion(t1:TsType, t2:TsType);
 	TTuple(tl:Array<TsType>);
+	TIntersection(t1:TsType, t2:TsType);
+	TValue( v : TsTypeValue );
+	TKeyof( t : TsType );
+}
+
+enum TsTypeValue {
+	VNumber( v : String );
+	VString( v : String );
 }
 
 // Declarations
@@ -128,7 +139,8 @@ typedef TsEnum = {
 
 typedef TsTypedef = {
 	name: String,
-	types: Array<TsType>
+	params : TsTypeParameters,
+	type: TsType
 }
 
 typedef TsModule = {
@@ -141,14 +153,11 @@ typedef TsEnumCtor = {
 	value: Null<String>
 }
 
-typedef TsImportDeclaration = {
-	name: String,
-	entityName: TsIdentifierPath
-}
-
-typedef TsExternalImportDeclaration = {
-	name: String,
-	moduleReference: String
+enum TsRef {
+	RefAll;
+	RefDefault( ?n : String );
+	RefName( n : String );
+	RefAs( e : TsRef, name : String );
 }
 
 enum TsDeclaration {
@@ -160,7 +169,7 @@ enum TsDeclaration {
 	DInterface(i:TsInterface);
 	DModule(m:TsModule);
 	DExternalModule(m:TsModule);
-	DImport(i:TsImportDeclaration);
-	DExternalImport(i:TsExternalImportDeclaration);
-	DExportAssignment(s:String);
+	DImport( defs : Array<TsRef>, fromModule : String );
+	DExport( defs : Array<TsRef>, ?fromModule : String );
+	DExportDecl( d : TsDeclaration, isDefault : Bool );
 }
