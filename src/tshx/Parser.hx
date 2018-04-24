@@ -18,10 +18,12 @@ class TsParserError extends hxparse.ParserError {
 
 class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> implements hxparse.ParserBuilder {
 
+	var sourceName:String;
 	var moduleName:String;
 
-	public function new(input:byte.ByteData, sourceName:String) {
-		moduleName = sourceName;
+	public function new(input:byte.ByteData, moduleName, sourceName:String) {
+		this.moduleName = moduleName;
+		this.sourceName = sourceName;
 		super(new hxparse.LexerTokenSource(new tshx.Lexer(input, sourceName), tshx.Lexer.tok));
 	}
 
@@ -78,23 +80,31 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 							elements: fl
 						});
 				}
-			case [{def: TKeyword(TsImport)}, i = identifier(), {def: TAssign}]:
+			case [{def: TKeyword(TsImport)}]:
+
 				switch stream {
-					case [{def: TKeyword(TsRequire)}, {def: TLPar}, {def: TString(s)}, {def: TRPar}, {def: TSemicolon}]:
-						DExternalImport({
-							name: i,
-							moduleReference: s
-						});
-					case [path = identifierPath()]:
-						DImport({
-							name: i,
-							entityName: path
-						});
+					case [{def: TLBrace}, el = psep(TComma, reference), { def:TRBrace }, { def : TIdent("from") }, { def : TString(path) }]:
+						DImport(el, path);
+					case [e = reference(), { def : TIdent("from") }, { def : TString(path) }]:
+						DImport([e], path);
 				}
+
 			case [{def:TKeyword(TsExport)}]:
 				switch stream {
-					case [{def: TAssign}, i = identifier(), _ = topt(TSemicolon)]: DExportAssignment(i);
-					case [d = declaration()]: d;
+					case [{def: TLBrace}, el = psep(TComma, reference), { def:TRBrace }]:
+						var path = switch stream {
+						case [{ def : TIdent("from") }, { def : TString(path) }]: path;
+						default: null;
+						}
+						DExport(el, path);
+					case [{def: TKeyword(TsDefault) }]:
+						switch stream {
+						case [d = declaration()]: DExportDecl(d, true);
+						case [i = identifier()]: DExport([RefDefault(i)]);
+						}
+					case [e = reference(), { def : TIdent("from") }, { def : TString(path) }]:
+						DExport([e], path);
+					case [d = declaration()]: DExportDecl(d,false);
 				}
 			case [{def: TKeyword(TsDeclare)}]:
 				declaration();
@@ -107,6 +117,18 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		return switch stream {
 			case [{def: TIdent("const")}]: ["const"];
 			case _: [];
+		}
+	}
+
+	function reference() {
+		var e = switch stream {
+		case [ { def : TKeyword(TsDefault) } ]: RefDefault();
+		case [ { def : TStar } ]: RefAll;
+		case [ { def : TIdent(i) } ]: RefName(i);
+		}
+		return switch stream {
+		case [ { def : TIdent("as") }, i = identifier() ]: RefAs(e, i);
+		default: e;
 		}
 	}
 
@@ -203,12 +225,13 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 
 	// Typedef
 
-	function Typedef() {
+	function Typedef() : TsTypedef {
 		return switch stream {
-			case [{def: TIdent("type")}, i = identifier(), {def: TAssign}, tl = psep(TPipe, type)]:
+			case [{def: TKeyword(TsType)}, i = identifier(), params = popt(typeParameters), {def: TAssign}, t = type()]:
 				{
 					name: i,
-					types: tl
+					params : params == null ? [] : params,
+					type: t
 				}
 		}
 	}
@@ -222,27 +245,42 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		}
 	}
 
-	function typeParameter() {
+	function typeParameter() : TsTypeParameter {
 		return switch stream {
-			case [i = identifier(), constraint = popt(constraint)]:
-				{
-					name: i,
-					constraint: constraint
+			case [i = identifier()]:
+				var tp : TsTypeParameter = { name : i };
+				switch stream {
+				case [{ def : TKeyword(TsExtends) }, t = type()]: tp.constraint = t;
+				default:
+					null; // fix for hxparser !
 				}
+				switch stream {
+				case [{ def : TAssign }, t = type()]: tp.assign = t;
+				default: null; // fix for hxparser !
+				}
+				tp;
 		}
 	}
 
 	function constraint() {
 		return switch stream {
-			case [{def: TKeyword(TsExtends)}, t = type()]:
-				t;
+		case [{def: TAssign}, t = type()]: t; // alt syntax for extends ?? (not documented)
+		case [{def: TKeyword(TsExtends)}, t = type()]: t;
 		}
 	}
 
 	// Types
 
 	function type() {
+		// prefix
+		switch stream {
+		case [{ def : TPipe }]: null;
+		case [{ def : TAnd }]: null;
+		default: null;
+		}
 		return typeNext(switch stream {
+			case [{def: TNumber(v)}]: TValue(VNumber(v));
+			case [{def: TString(v)}]: TValue(VString(v));
 			case [{def: TIdent("any")}]: TPredefined(TAny);
 			case [{def: TIdent("number")}]: TPredefined(TNumber);
 			case [{def: TIdent("boolean" | "bool")}]: TPredefined(TBoolean);
@@ -250,6 +288,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 			case [{def: TIdent("void")}]: TPredefined(TVoid);
 			case [{def: TKeyword(TsTypeof)}, path = identifierPath()]: TTypeQuery(path);
 			case [{def: TKeyword(TsNew)}, f = functionType()]: TTypeLiteral(TConstructor(f));
+			case [{def: TIdent("keyof")}, t = type()]: TKeyof(t);
 			case [r = typeReference()]: TTypeReference(r);
 			case [o = objectType(false)]: TTypeLiteral(TObject(o));
 			case [{def: TLPar}]: parenthesisType();
@@ -266,9 +305,16 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 
 	function typeNext(t) {
 		return switch stream {
-			case [{def:TLBrack}, {def:TRBrack}]: typeNext(TTypeLiteral(TArray(t)));
-			case [{def:TPipe}, t2 = type()]: typeNext(TTypeChoice(t, t2));
+			case [{def:TLBrack}, i = popt(identifier), str = popt(string), {def:TRBrack}]: typeNext(TTypeLiteral(TArray(t,i == null ? str : i)));
+			case [{def:TPipe}, t2 = type()]: typeNext(TUnion(t, t2));
+			case [{def:TAnd}, t2 = type()]: typeNext(TIntersection(t, t2));
 			case _: t;
+		}
+	}
+
+	function string() {
+		return switch stream {
+		case [{ def : TString(s) }]: s;
 		}
 	}
 
@@ -306,10 +352,12 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				TCall(call);
 			case [{def: TKeyword(TsNew)}, call = callSignature()]:
 				TConstruct(call);
-			case [{def: TLBrack}, i = identifier(), {def: TColon}, s = identifier(), {def:TRBrack}, t = typeAnnotation()]:
+			case [{def: TLBrack}, i = identifier(), {def: TColon|TIdent("in")}, t = type(), {def:TRBrack}, opt = topt(TQuestion), annot = typeAnnotation()]:
 				TIndex({
 					name: i,
-					type: t
+					opt : opt,
+					type: t,
+					annot : t
 				});
 			case _:
 				if (peek(0).def == TColon) {
@@ -327,6 +375,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 				}
 		}
 		topt(TSemicolon);
+		topt(TComma);
 		return r;
 	}
 
@@ -442,7 +491,7 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		}
 	}
 
-	function argument() {
+	function argument() : TsArgument {
 		return switch stream {
 			case [i = identifier()]:
 				var opt = switch stream {
@@ -473,6 +522,13 @@ class Parser extends hxparse.Parser<hxparse.LexerTokenSource<TsToken>, TsToken> 
 		return switch stream {
 			case [{def: TIdent(s)}]: s;
 			case [{def:TKeyword(kwd)}]: kwd.getName().charAt(2).toLowerCase() + kwd.getName().substr(3);
+		}
+	}
+
+	function identifierGroup() {
+		return switch stream {
+			case [{def : TLBrace}, il = psep(TComma, identifier), { def : TRBrace }]: il;
+			case [i = identifier()]: [i];
 		}
 	}
 
