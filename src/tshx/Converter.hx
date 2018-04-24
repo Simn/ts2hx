@@ -108,7 +108,7 @@ class Converter {
 		}
 	}
 
-	function convertInterface(i:TsInterface) {
+	function convertInterface(i:TsInterface) : TypeDefinition {
 		var fields = convertFields(i.t);
 		var parents = i.parents.map(convertTypeReference);
 		var kind = parents.length == 0 ? TAnonymous(fields) : TExtend(parents, fields);
@@ -125,7 +125,7 @@ class Converter {
 		return td;
 	}
 
-	function convertClass(c:TsClass) {
+	function convertClass(c:TsClass) : TypeDefinition {
 		var fields = convertFields(c.t);
 		var interfaces = c.interfaces.map(convertTypeReference);
 		// TODO: can't implement typedefs, I guess we can rely on structural subtyping
@@ -143,7 +143,7 @@ class Converter {
 		return td;
 	}
 
-	function convertEnum(en:TsEnum) {
+	function convertEnum(en:TsEnum) : TypeDefinition {
 		var i = 0;
 		var fields = en.constructors.map(function(ctor) {
 			if (ctor.value != null) {
